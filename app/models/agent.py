@@ -6,7 +6,7 @@ from app.database.base import Base
 
 class Agent(Base):
     __tablename__ = "agents"
-    id : Mapped[int] = mapped_column(primary_key=True , index = True)
+    id : Mapped[int] = mapped_column(primary_key=True )
     hostname : Mapped[str] = mapped_column(String(255) ,nullable= False)
     status : Mapped[str] = mapped_column(String(20) , default= "offline" , nullable= False)
     created_at : Mapped[datetime] = mapped_column(DateTime(timezone=True) , server_default= func.now() , nullable= False)
