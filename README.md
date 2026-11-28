@@ -12,7 +12,7 @@ The long-term goal is to build a reliable platform that can identify infrastruct
 
 ## 🎯 Project Goals
 
-- Monitor infrastructure health through real-time system metrics.
+- Monitor infrastructure health through system metrics.
 - Collect CPU, memory, and disk usage through lightweight agents.
 - Store and retrieve monitoring data efficiently.
 - Detect abnormal behaviour using configurable rules.
@@ -56,8 +56,10 @@ Operator Response
 | Database | PostgreSQL (Supabase) |
 | ORM | SQLAlchemy 2.x |
 | Database Migrations | Alembic |
+| Database Driver | pg8000 |
 | Validation | Pydantic |
-| Monitoring Agent | Python, psutil |
+| Configuration | Pydantic Settings |
+| Monitoring Agent | Python, psutil (planned) |
 | HTTP Communication | HTTPX |
 | Background Jobs | Redis, Celery/RQ (planned) |
 | Testing | pytest, HTTPX |
@@ -68,20 +70,36 @@ Operator Response
 
 **Phase 1 — Backend Core**
 
-SENTINEL is currently under active development.
+SENTINEL is currently under active development. The initial backend foundation and database migration workflow have been implemented.
 
 ### Completed
+
 - [x] Initial FastAPI application setup
-- [x] Application health endpoint
+- [x] Application liveness endpoint
 - [x] Database readiness endpoint
 - [x] PostgreSQL connection configuration
-- [x] SQLAlchemy declarative base
+- [x] Supabase PostgreSQL integration
+- [x] SQLAlchemy 2.x declarative base
 - [x] Initial Agent model
 - [x] Initial Metric model
 - [x] Model import verification
+- [x] Alembic initialization and configuration
+- [x] Initial database migration generated
+- [x] Agent and Metric tables created through Alembic
+- [x] Migration successfully applied to Supabase
+- [x] Alembic migration version tracking
+- [x] Initial database migration committed and pushed to GitHub
+
+### Database Tables
+
+| Table | Purpose |
+|---|---|
+| `agents` | Stores monitoring agent information |
+| `metrics` | Stores CPU, memory, and disk usage metrics |
+| `alembic_version` | Tracks applied database migrations |
 
 ### In Progress / Upcoming
-- [ ] Alembic configuration and database migrations
+
 - [ ] Service registry and Service model
 - [ ] CRUD APIs
 - [ ] Authentication and authorization
@@ -97,14 +115,14 @@ SENTINEL is currently under active development.
 Make sure you have the following installed:
 
 - Python 3.12+
-- PostgreSQL database (or Supabase project)
+- PostgreSQL database or Supabase project
 - Git
 
 ### 1. Clone the repository
 
 ```bash
-git clone <YOUR_REPOSITORY_URL>
-cd sentinel
+git clone https://github.com/Harshit-pundir/Sentinel.git
+cd Sentinel
 ```
 
 ### 2. Create a virtual environment
@@ -116,11 +134,13 @@ python -m venv .venv
 Activate it:
 
 **Windows PowerShell**
+
 ```powershell
 .venv\Scripts\Activate.ps1
 ```
 
 **Linux / macOS**
+
 ```bash
 source .venv/bin/activate
 ```
@@ -137,15 +157,41 @@ Create a `.env` file in the project root:
 
 ```env
 APP_NAME=Sentinel
-DATABASE_URL=postgresql+psycopg://USER:PASSWORD@HOST:5432/DATABASE
+DATABASE_URL=postgresql+pg8000://USER:PASSWORD@HOST:5432/DATABASE
 DEBUG=True
 ```
 
-Replace the database placeholders with your PostgreSQL connection details.
+Replace the database placeholders with your PostgreSQL or Supabase connection details.
 
-**Important:** Never commit your `.env` file or expose database credentials publicly.
+**Important:**
+- Never commit your `.env` file.
+- Never expose database credentials publicly.
+- Keep `.env` in `.gitignore`.
+- Use the appropriate database connection details for your environment.
 
-### 5. Run the application
+### 5. Apply database migrations
+
+Initialize or update the database schema using Alembic:
+
+```bash
+python -m alembic upgrade head
+```
+
+Check the currently applied migration:
+
+```bash
+python -m alembic current
+```
+
+To generate a migration after changing SQLAlchemy models:
+
+```bash
+python -m alembic revision --autogenerate -m "Describe your changes"
+```
+
+Review generated migration files before applying them.
+
+### 6. Run the application
 
 ```bash
 python -m uvicorn app.main:app --reload
@@ -157,7 +203,7 @@ If your local Windows environment has trouble loading the optional `httptools` e
 python -m uvicorn app.main:app --reload --http h11
 ```
 
-### 6. Verify the application
+### 7. Verify the application
 
 Once the server is running, open:
 
@@ -197,6 +243,12 @@ AI-generated recommendations will not be allowed to execute arbitrary system com
 ```text
 sentinel/
 │
+├── alembic/
+│   ├── versions/
+│   │   └── 6ad6f03df117_create_agents_and_metrics_tables.py
+│   ├── env.py
+│   └── script.py.mako
+│
 ├── app/
 │   ├── core/
 │   │   └── config.py
@@ -215,6 +267,7 @@ sentinel/
 ├── tests/
 ├── .env.example
 ├── .gitignore
+├── alembic.ini
 ├── requirements.txt
 └── README.md
 ```
@@ -231,4 +284,4 @@ The focus is not just on detecting infrastructure problems, but also on understa
 
 **Status:** 🚧 Active Development  
 **Current Phase:** Phase 1 — Backend Core  
-**Built with:** Python · FastAPI · PostgreSQL · SQLAlchemy
+**Built with:** Python · FastAPI · PostgreSQL · SQLAlchemy · Alembic
